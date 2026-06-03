@@ -1,6 +1,6 @@
 ---
 title: "Explore US Bikeshare Data"
-author: "Твоё Имя"
+author: "Kirill Shish"
 date: "`r Sys.Date()`"
 output: html_document
 ---
@@ -11,24 +11,23 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 library(ggplot2)
 library(dplyr)
 library(lubridate)
-```
 
-## Введение
+## Introduction
 
-В этом проекте анализируются данные велопроката за первое полугодие 2017 года для трёх городов США: **Чикаго**, **Нью-Йорк** и **Вашингтон**.
+This project analyzes bike rental data for the first half of 2017 for three US cities: **Chicago**, **New York** and **Washington**.
 
-Цели анализа:
-- Определить наиболее популярное время поездок.
-- Выявить самые загруженные станции и маршруты.
-- Сравнить длительность поездок между городами.
-- Изучить демографические характеристики пользователей.
+Objectives of the analysis:
+- Determine the most popular travel time.
+- Identify the busiest stations and routes.
+- Compare the duration of trips between cities.
+- Study the demographic characteristics of users.
 
 ---
 
-## Подготовка данных
+## Data preparation
 
 ```{r}
-# Функция загрузки и предобработки данных
+# Data loading and preprocessing function
 load_and_clean <- function(city) {
   filename <- paste0(city, ".csv")
   df <- read.csv(filename)
@@ -41,12 +40,12 @@ load_and_clean <- function(city) {
   return(df)
 }
 
-# Загружаем все три города
+# Loading all three cities
 chi <- load_and_clean("chicago")
 nyc <- load_and_clean("new-york-city")
 was <- load_and_clean("washington")
 
-# Объединяем для общего анализа
+# Combining them for a general analysis
 all_cities <- bind_rows(
   chi %>% mutate(City = "Chicago"),
   nyc %>% mutate(City = "New York"),
@@ -55,146 +54,141 @@ all_cities <- bind_rows(
 all_cities$duration_min <- all_cities$Trip.Duration / 60
 ```
 
-Данные успешно загружены. Всего поездок: **`r nrow(all_cities)`**.
+The data has been uploaded successfully. Total trips: **`r nrow(all_cities)`**.
 
 ---
 
-## 1. Популярное время поездок
+## 1. Popular travel times
 
 ```{r}
 cat("=== ЧИКАГО ===\n")
-cat("Самый частый месяц:       ", names(sort(table(chi$month), decreasing = TRUE)[1]), "\n")
-cat("Самый частый день недели: ", names(sort(table(chi$day_of_week), decreasing = TRUE)[1]), "\n")
-cat("Самый частый час:          ", names(sort(table(chi$hour), decreasing = TRUE)[1]), ":00\n\n")
+cat("The most frequent month:       ", names(sort(table(chi$month), decreasing = TRUE)[1]), "\n")
+cat("The most frequent day of the week: ", names(sort(table(chi$day_of_week), decreasing = TRUE)[1]), "\n")
+cat("The most frequent hour:          ", names(sort(table(chi$hour), decreasing = TRUE)[1]), ":00\n\n")
 
-cat("=== НЬЮ-ЙОРК ===\n")
-cat("Самый частый месяц:       ", names(sort(table(nyc$month), decreasing = TRUE)[1]), "\n")
-cat("Самый частый день недели: ", names(sort(table(nyc$day_of_week), decreasing = TRUE)[1]), "\n")
-cat("Самый частый час:          ", names(sort(table(nyc$hour), decreasing = TRUE)[1]), ":00\n\n")
+cat("=== New York ===\n")
+cat("The most frequent month:       ", names(sort(table(nyc$month), decreasing = TRUE)[1]), "\n")
+cat("The most frequent day of the week: ", names(sort(table(nyc$day_of_week), decreasing = TRUE)[1]), "\n")
+cat("The most frequent hour:          ", names(sort(table(nyc$hour), decreasing = TRUE)[1]), ":00\n\n")
 
-cat("=== ВАШИНГТОН ===\n")
-cat("Самый частый месяц:       ", names(sort(table(was$month), decreasing = TRUE)[1]), "\n")
-cat("Самый частый день недели: ", names(sort(table(was$day_of_week), decreasing = TRUE)[1]), "\n")
-cat("Самый частый час:          ", names(sort(table(was$hour), decreasing = TRUE)[1]), ":00\n")
+cat("===Washington ===\n")
+cat("The most frequent month:       ", names(sort(table(was$month), decreasing = TRUE)[1]), "\n")
+cat("The most frequent day of the week: ", names(sort(table(was$day_of_week), decreasing = TRUE)[1]), "\n")
+cat("The most frequent hour:          ", names(sort(table(was$hour), decreasing = TRUE)[1]), ":00\n")
 ```
 
-### 📊 График: Распределение поездок по часам суток (Нью-Йорк)
-
+### 📊 График: Distribution of trips by hours of the day (New York)
 ```{r}
 ggplot(nyc, aes(x = hour)) +
   geom_bar(fill = "#2E86AB", color = "white", alpha = 0.8) +
-  labs(title = "Распределение поездок по часам суток (Нью-Йорк)",
-       subtitle = "Данные за первое полугодие 2017",
-       x = "Час дня (0 = полночь, 23 = 11 вечера)",
-       y = "Количество поездок") +
+  labs(title = "Hourly Distribution of Trips (New York)",
+       subtitle = "Data for the first half of 2017",
+       x = "Hour of Day (0 = midnight, 23 = 11 PM)",
+       y = "Number of Trips") +
   scale_x_continuous(breaks = seq(0, 23, 2)) +
   theme_minimal(base_size = 12)
 ```
 
-**Вывод:** Пик поездок приходится на утренние (7-9) и вечерние (16-18) часы — это соответствует часам пик, когда люди едут на работу и с работы.
+**Output:** Peak travel occurs in the morning (7-9) and evening (16-18) hours — this corresponds to rush hours when people travel to and from work.
+---
+
+## 2. Popular stations and routes
+
+```{r}
+cat("=== CHICAGO ===\n")
+cat("Most frequent start station:\n  ", names(sort(table(chi$Start.Station), decreasing = TRUE)[1]), "\n")
+cat("Most frequent route:\n  ", names(sort(table(chi$route), decreasing = TRUE)[1]), "\n\n")
+
+cat("=== NEW YORK ===\n")
+cat("Most frequent start station:\n  ", names(sort(table(nyc$Start.Station), decreasing = TRUE)[1]), "\n")
+cat("Most frequent route:\n  ", names(sort(table(nyc$route), decreasing = TRUE)[1]), "\n\n")
+
+cat("=== WASHINGTON ===\n")
+cat("Most frequent start station:\n  ", names(sort(table(was$Start.Station), decreasing = TRUE)[1]), "\n")
+cat("Most frequent route:\n  ", names(sort(table(was$route), decreasing = TRUE)[1]), "\n")
+```
+
+**Output:** The most popular stations are located in the central and tourist areas of the cities.
 
 ---
 
-## 2. Популярные станции и маршруты
+## 3. Duration of trips
 
 ```{r}
-cat("=== ЧИКАГО ===\n")
-cat("Самая частая станция старта:\n  ", names(sort(table(chi$Start.Station), decreasing = TRUE)[1]), "\n")
-cat("Самый частый маршрут:\n  ", names(sort(table(chi$route), decreasing = TRUE)[1]), "\n\n")
+cat("=== AVERAGE DURATION (minutes) ===\n")
+cat("Chicago:     ", round(mean(chi$Trip.Duration / 60), 2), "\n")
+cat("New York:   ", round(mean(nyc$Trip.Duration / 60), 2), "\n")
+cat("Washington:  ", round(mean(was$Trip.Duration / 60), 2), "\n\n")
 
-cat("=== НЬЮ-ЙОРК ===\n")
-cat("Самая частая станция старта:\n  ", names(sort(table(nyc$Start.Station), decreasing = TRUE)[1]), "\n")
-cat("Самый частый маршрут:\n  ", names(sort(table(nyc$route), decreasing = TRUE)[1]), "\n\n")
-
-cat("=== ВАШИНГТОН ===\n")
-cat("Самая частая станция старта:\n  ", names(sort(table(was$Start.Station), decreasing = TRUE)[1]), "\n")
-cat("Самый частый маршрут:\n  ", names(sort(table(was$route), decreasing = TRUE)[1]), "\n")
+cat("=== TOTAL TIME (hours) ===\n")
+cat("Chicago:     ", round(sum(chi$Trip.Duration) / 3600, 1), "\n")
+cat("New York:   ", round(sum(nyc$Trip.Duration) / 3600, 1), "\n")
+cat("Washington:  ", round(sum(was$Trip.Duration) / 3600, 1), "\n")
 ```
 
-**Вывод:** Наиболее популярные станции расположены в центральных и туристических районах городов.
-
----
-
-## 3. Длительность поездок
-
-```{r}
-cat("=== СРЕДНЯЯ ДЛИТЕЛЬНОСТЬ (минуты) ===\n")
-cat("Чикаго:     ", round(mean(chi$Trip.Duration / 60), 2), "\n")
-cat("Нью-Йорк:   ", round(mean(nyc$Trip.Duration / 60), 2), "\n")
-cat("Вашингтон:  ", round(mean(was$Trip.Duration / 60), 2), "\n\n")
-
-cat("=== ОБЩЕЕ ВРЕМЯ (часы) ===\n")
-cat("Чикаго:     ", round(sum(chi$Trip.Duration) / 3600, 1), "\n")
-cat("Нью-Йорк:   ", round(sum(nyc$Trip.Duration) / 3600, 1), "\n")
-cat("Вашингтон:  ", round(sum(was$Trip.Duration) / 3600, 1), "\n")
-```
-
-### 📊 График: Сравнение длительности поездок по городам
-
+### 📊 Graph: Comparison of the duration of trips by city
 ```{r}
 ggplot(all_cities, aes(x = City, y = duration_min, fill = City)) +
   geom_boxplot(alpha = 0.7, outlier.color = "gray60", outlier.size = 0.5) +
-  labs(title = "Сравнение длительности поездок по городам",
-       x = "Город",
-       y = "Длительность поездки (минуты)") +
+  labs(title = "Comparison of Trip Durations by City",
+       x = "City",
+       y = "Trip Duration (minutes)") +
   scale_fill_manual(values = c("Chicago" = "#C73E1D", 
                                "New York" = "#2E86AB", 
                                "Washington" = "#6A994E")) +
-  coord_cartesian(ylim = c(0, 30)) +
+  coord_cartesian(ylim = c(0, 30)) +  # Limit Y axis for visual clarity (majority of trips are under 30 mins)
   theme_minimal(base_size = 12) +
   theme(legend.position = "none")
 ```
 
-**Вывод:** Средняя длительность поездки составляет 10-15 минут. В Вашингтоне поездки немного длиннее, чем в Чикаго и Нью-Йорке.
-
+**Output:** The average trip duration is 10-15 minutes. Trips in Washington are slightly longer than in Chicago and New York.
 ---
 
-## 4. Информация о пользователях
+## 4.User Information
 
 ```{r}
-cat("=== ТИПЫ ПОЛЬЗОВАТЕЛЕЙ ===\n")
+cat("=== USER TYPES ===\n")
 table(all_cities$City, all_cities$User.Type)
 
-cat("\n=== ПОЛ ПОЛЬЗОВАТЕЛЕЙ (Чикаго и Нью-Йорк) ===\n")
-cat("Чикаго:\n"); print(table(chi$Gender))
-cat("\nНью-Йорк:\n"); print(table(nyc$Gender))
-cat("\n(Для Вашингтона данные о поле отсутствуют)\n")
+cat("\n=== USER GENDER (Chicago and New York) ===\n")
+cat("Chicago:\n"); print(table(chi$Gender))
+cat("\nNew York:\n"); print(table(nyc$Gender))
+cat("\n(Gender and birth year data are missing for Washington)\n")
 
-cat("\n=== ГОД РОЖДЕНИЯ (Чикаго и Нью-Йорк) ===\n")
-cat("Чикаго:\n")
-cat("  Самый ранний: ", min(chi$Birth.Year, na.rm = TRUE), "\n")
-cat("  Самый поздний: ", max(chi$Birth.Year, na.rm = TRUE), "\n")
-cat("  Самый частый:  ", names(sort(table(chi$Birth.Year), decreasing = TRUE)[1]), "\n\n")
-cat("Нью-Йорк:\n")
-cat("  Самый ранний: ", min(nyc$Birth.Year, na.rm = TRUE), "\n")
-cat("  Самый поздний: ", max(nyc$Birth.Year, na.rm = TRUE), "\n")
-cat("  Самый частый:  ", names(sort(table(nyc$Birth.Year), decreasing = TRUE)[1]), "\n")
+cat("\n=== BIRTH YEAR (Chicago and New York) ===\n")
+cat("Chicago:\n")
+cat("  Earliest: ", min(chi$Birth.Year, na.rm = TRUE), "\n")
+cat("  Latest:   ", max(chi$Birth.Year, na.rm = TRUE), "\n")
+cat("  Most frequent: ", names(sort(table(chi$Birth.Year), decreasing = TRUE)[1]), "\n\n")
+cat("New York:\n")
+cat("  Earliest: ", min(nyc$Birth.Year, na.rm = TRUE), "\n")
+cat("  Latest:   ", max(nyc$Birth.Year, na.rm = TRUE), "\n")
+cat("  Most frequent: ", names(sort(table(nyc$Birth.Year), decreasing = TRUE)[1]), "\n")
 ```
 
-### 📊 График: Типы пользователей по городам
-
+### 📊 Graph: Types of users by city
 ```{r}
 ggplot(all_cities, aes(x = City, fill = User.Type)) +
   geom_bar(position = "dodge", color = "white") +
-  labs(title = "Сравнение типов пользователей по городам",
-       x = "Город",
-       y = "Количество поездок",
-       fill = "Тип пользователя") +
+  labs(title = "Comparison of User Types by City",
+       x = "City",
+       y = "Number of Trips",
+       fill = "User Type") +
   scale_fill_manual(values = c("Subscriber" = "#F18F01", "Customer" = "#006E90")) +
   theme_minimal(base_size = 12)
 ```
 
-**Вывод:** Подавляющее большинство пользователей — подписчики (Subscriber). Среди тех, кто указал пол, преобладают мужчины. Самый частый год рождения — конец 1980-х.
+**Output:** The vast majority of users are subscribers. Men predominate among those who indicated their gender. The most frequent year of birth is the end of the 1980s.
 
 ---
 
-## Заключение
+## Conclusion
 
-В ходе анализа данных велопроката за 2017 год были выявлены следующие закономерности:
+During the analysis of bicycle rental data for 2017, the following patterns were identified:
 
-1. **Время:** Наибольшая активность наблюдается в утренние и вечерние часы пик, а также в тёплые месяцы (июнь-август).
-2. **Станции:** Самые популярные станции находятся в деловых и туристических центрах городов.
-3. **Длительность:** Большинство поездок короткие (до 15 минут), что характерно для городского транспорта.
-4. **Пользователи:** Основу составляют подписчики мужского пола, родившиеся в 1980-х годах.
+1. **Time:** The greatest activity is observed during the morning and evening rush hours, as well as during the warmer months (June-August).
+2. **Stations:** The most popular stations are located in the business and tourist centers of the cities.
+3. **Duration:** Most trips are short (up to 15 minutes), which is typical for urban transport.
+4. **Users:** The base consists of male subscribers born in the 1980s.
 
-Данный анализ может быть полезен для оптимизации распределения велосипедов по станциям и планирования маркетинговых акций.
+This analysis can be useful for optimizing the distribution of bicycles across stations and planning marketing campaigns.
